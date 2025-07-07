@@ -1,12 +1,10 @@
 package api
 
 import (
-	"context"
 	"encoding/json"
-	"log"
 	"net/http"
 
-	"github.com/SidM81/goQueue/internal/storage"
+	"github.com/SidM81/goQueue/internal/consumer"
 	"github.com/google/uuid"
 )
 
@@ -22,38 +20,9 @@ func AcknowledgeHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ctx := context.Background()
-
-	switch req.Status {
-	case "acknowledged":
-		_, err := storage.DB.Exec(ctx, `
-			UPDATE messages
-			SET status = 'acknowledged',
-			    acked_at = now()
-			WHERE id = $1
-		`, req.MessageID)
-		if err != nil {
-			log.Println("ACK update error:", err)
-			http.Error(w, "Database error", http.StatusInternalServerError)
-			return
-		}
-
-	case "failed":
-		_, err := storage.DB.Exec(ctx, `
-			UPDATE messages
-			SET status = 'failed',
-			    attempt_count = attempt_count + 1,
-			    last_attempt_at = now()
-			WHERE id = $1
-		`, req.MessageID)
-		if err != nil {
-			log.Println("FAIL update error:", err)
-			http.Error(w, "Database error", http.StatusInternalServerError)
-			return
-		}
-
-	default:
-		http.Error(w, "Invalid status value", http.StatusBadRequest)
+	err := consumer.AcknowledgeMessage(r.Context(), req.MessageID, req.Status)
+	if err != nil {
+		http.Error(w, "Acknowledge failed: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
