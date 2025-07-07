@@ -7,6 +7,7 @@ import (
 	"hash/fnv"
 	"net/http"
 
+	"github.com/SidM81/goQueue/internal/models"
 	"github.com/SidM81/goQueue/internal/storage"
 	"github.com/google/uuid"
 )
@@ -25,9 +26,9 @@ type ProduceResponse struct {
 	Status    string    `json:"status"`
 }
 
-type Partition struct {
-	ID     uuid.UUID
-	Number int
+type sqlNullInt64 struct {
+	Int64 int64
+	Valid bool
 }
 
 func ProduceMessageHandler(w http.ResponseWriter, r *http.Request) {
@@ -53,9 +54,9 @@ func ProduceMessageHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer rows.Close()
 
-	var partitions []Partition
+	var partitions []models.Partition
 	for rows.Next() {
-		var p Partition
+		var p models.Partition
 		if err := rows.Scan(&p.ID, &p.Number); err != nil {
 			http.Error(w, "Partition scan failed", http.StatusInternalServerError)
 			return
@@ -104,7 +105,7 @@ func ProduceMessageHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(resp)
 }
 
-func pickPartition(partitions []Partition, key *string) Partition {
+func pickPartition(partitions []models.Partition, key *string) models.Partition {
 	if key == nil || *key == "" {
 		return partitions[0]
 	}
@@ -112,11 +113,6 @@ func pickPartition(partitions []Partition, key *string) Partition {
 	hash.Write([]byte(*key))
 	index := int(hash.Sum32()) % len(partitions)
 	return partitions[index]
-}
-
-type sqlNullInt64 struct {
-	Int64 int64
-	Valid bool
 }
 
 func (n *sqlNullInt64) Scan(value interface{}) error {

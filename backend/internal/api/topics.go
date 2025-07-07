@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/SidM81/goQueue/internal/models"
 	"github.com/SidM81/goQueue/internal/storage"
 	"github.com/google/uuid"
 )
@@ -18,12 +19,6 @@ type CreateTopicResponse struct {
 	ID         uuid.UUID `json:"id"`
 	Name       string    `json:"name"`
 	Partitions int       `json:"partitions"`
-}
-
-type TopicWithPartitions struct {
-	ID         uuid.UUID `json:"id"`
-	Name       string    `json:"name"`
-	Partitions []int     `json:"partitions"`
 }
 
 func CreateTopicHandler(w http.ResponseWriter, r *http.Request) {
@@ -95,7 +90,7 @@ func ListTopicsHandler(w http.ResponseWriter, r *http.Request) {
 	defer rows.Close()
 
 	// Map of topic_id -> TopicWithPartitions
-	topicsMap := make(map[uuid.UUID]*TopicWithPartitions)
+	topicsMap := make(map[uuid.UUID]*models.TopicWithPartitions)
 
 	for rows.Next() {
 		var (
@@ -109,7 +104,7 @@ func ListTopicsHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if _, exists := topicsMap[topicID]; !exists {
-			topicsMap[topicID] = &TopicWithPartitions{
+			topicsMap[topicID] = &models.TopicWithPartitions{
 				ID:         topicID,
 				Name:       topicName,
 				Partitions: []int{},
@@ -119,7 +114,7 @@ func ListTopicsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Convert map to slice
-	var topics []TopicWithPartitions
+	var topics []models.TopicWithPartitions
 	for _, t := range topicsMap {
 		topics = append(topics, *t)
 	}
