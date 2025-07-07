@@ -94,5 +94,5 @@ MIT License
 
 ## 🙌 Credits
 
-Built by [Siddharth Mishra](https://github.com/siddu1999)  
+Built by [Siddharth Mishra](https://github.com/SidM81)  
 Distributed systems, Go, and low-level enthusiast.
