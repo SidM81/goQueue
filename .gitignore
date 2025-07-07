@@ -1,0 +1,40 @@
+# Global
+.env
+*.log
+.DS_Store
+*.swp
+node_modules/
+dist/
+build/
+coverage/
+*.local
+
+# Go specific
+backend/bin/
+backend/pkg/
+*.exe
+*.out
+*.test
+*.mod
+*.sum
+
+# IDEs/editors
+.vscode/
+.idea/
+*.iml
+
+# Next.js / React
+frontend/.next/
+frontend/out/
+frontend/node_modules/
+frontend/.env.local
+frontend/.env.production
+frontend/.turbo/
+
+# Docker
+*.tar
+**/.dockerignore
+
+# System
+Thumbs.db
+ehthumbs.db
