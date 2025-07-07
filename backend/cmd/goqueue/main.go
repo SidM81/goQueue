@@ -1,29 +1,26 @@
 package main
 
 import (
-	"context"
-	"fmt"
+	"log"
+	"net/http"
 
 	"github.com/SidM81/goQueue/config"
+	"github.com/SidM81/goQueue/internal/api"
 	"github.com/SidM81/goQueue/internal/storage"
+	"github.com/gorilla/mux"
 )
 
 func main() {
 	cfg := config.LoadConfig()
-
 	storage.Connect(cfg.PostgresDSN)
 
-	// Test query
-	var count int
-	err := storage.DB.QueryRow(
-		context.Background(),
-		"SELECT COUNT(*) FROM topics",
-	).Scan(&count)
+	router := mux.NewRouter()
 
-	if err != nil {
-		panic(err)
-	}
+	// Routes
+	router.HandleFunc("/topics", api.CreateTopicHandler).Methods("POST")
+	router.HandleFunc("/topics", api.ListTopicsHandler).Methods("GET")
+	router.HandleFunc("/produce", api.ProduceMessageHandler).Methods("POST")
 
-	fmt.Printf(" %d topics in DB\n", count)
-
+	log.Println("🚀 GoQueue API running at http://localhost:8080")
+	http.ListenAndServe(":8080", router)
 }
